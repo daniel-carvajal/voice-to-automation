@@ -27,13 +27,14 @@ class PomodoroApp(object):
         self.interval = self.config["interval"]
         self.set_up_menu()
         
-        self.start_pause_button = rumps.MenuItem(
-            title=self.config["start"], callback=self.start_timer)
-        self.stop_button = rumps.MenuItem(
-            title=self.config["stop"], callback=self.stop_timer)
-        self.microphone_button = rumps.MenuItem(title="Microphone Off", callback=self.toggle_microphone)
+        # self.start_pause_button = rumps.MenuItem(
+        #     title=self.config["start"], callback=self.start_timer)
+        # self.stop_button = rumps.MenuItem(
+        #     title=self.config["stop"], callback=self.stop_timer)
+        self.microphone_button = rumps.MenuItem(title="Microphone On", callback=self.toggle_microphone)
 
-        self.app.menu = [self.start_pause_button, self.stop_button, self.microphone_button]
+        # self.app.menu = [self.start_pause_button, self.stop_button, self.microphone_button]
+        self.app.menu = [self.microphone_button]
         self.microphone_event = threading.Event()  # Initialize the threading event here
 
 
@@ -43,15 +44,16 @@ class PomodoroApp(object):
         self.app.title = "🍅"
 
     def toggle_microphone(self, sender):
-        if sender.title == "Microphone Off":
-            sender.title = "Microphone On"
+        if sender.title == "Microphone On":
+            sender.title = "Microphone Off"
             self.microphone_event.clear()  # Clear the event to allow the microphone thread to run
             self.microphone_thread = threading.Thread(target=rhino_main, args=(ACCESS_KEY, CONTEXT_PATH, self.microphone_event))
             self.microphone_thread.start()
         else:
-            sender.title = "Microphone Off"
+            sender.title = "Microphone On"
             self.microphone_event.set()  # Set the event to signal the microphone thread to stop
             self.microphone_thread.join()  # Wait for the thread to finish
+            print("Microphone stopped.")
 
     def on_tick(self, sender):
         time_left = sender.end - sender.count
