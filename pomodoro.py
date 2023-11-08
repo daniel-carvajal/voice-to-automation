@@ -2,6 +2,8 @@ import rumps
 import threading
 
 import os
+from pathlib import Path
+import configparser
 from dotenv import load_dotenv
 load_dotenv('.env')
 
@@ -13,6 +15,9 @@ ACCESS_KEY = os.getenv('ACCESS_KEY')
 
 class PomodoroApp(object):
     def __init__(self):
+        self.settings = self.load_settings()  # Load settings first
+        print("here! ", self.settings)
+
         self.config = {
             "app_name": "Pomodoro",
             "start": "Start Timer",
@@ -20,7 +25,8 @@ class PomodoroApp(object):
             "continue": "Continue Timer",
             "stop": "Stop Timer",
             "break_message": "Time is up! Take a break :)",
-            "interval": 1500
+            "interval": self.settings.get('interval', 1500)  # Use settings value or default
+            # "interval": 1500
         }
         self.app = rumps.App(self.config["app_name"])
         self.timer = rumps.Timer(self.on_tick, 1)
@@ -36,6 +42,55 @@ class PomodoroApp(object):
         # self.app.menu = [self.start_pause_button, self.stop_button, self.microphone_button]
         self.app.menu = [self.microphone_button]
         self.microphone_event = threading.Event()  # Initialize the threading event here
+
+    def get_data_path(self, filename):
+        home_dir = Path.home()
+        settings_dir = home_dir / '.pomodoro_app'
+        settings_dir.mkdir(exist_ok=True)
+        return settings_dir / filename
+
+    def load_settings(self):
+        settings_path = self.get_data_path('settings.ini')
+        print(f"Looking for settings.ini at: {settings_path}")  # Debug print
+
+        if not settings_path.exists():
+            print("Settings file not found, creating from default settings.")
+            local_dir = Path(os.path.dirname(os.path.abspath(__file__)))
+            default_settings_path = local_dir / 'default_settings.ini'
+            print(f"Looking for default_settings.ini at: {default_settings_path}")  # Debug print
+
+            # Make sure the default settings file exists
+            if not default_settings_path.exists():
+                print("Default settings file not found.")
+                return {}
+            with open(default_settings_path, 'r') as default_settings, open(settings_path, 'w') as settings:
+                settings.write(default_settings.read())
+                print(f"Created settings.ini from default_settings.ini at: {settings_path}")  # Debug print
+
+
+        config = configparser.ConfigParser()
+        config.read(settings_path)
+
+        # Here you can define the expected settings and their types
+        settings_to_validate = {
+            'General': {
+                'interval': int,  # Add 'interval' to the 'General' section
+            },
+        }
+
+        # Initialize an empty dictionary to hold settings
+        validated_settings = {}
+
+        # Validate and assign settings
+        for section, settings in settings_to_validate.items():
+            for setting, value_type in settings.items():
+                if value_type == int:
+                    validated_settings[setting] = config.getint(section, setting, fallback=0)
+                elif value_type == float:
+                    validated_settings[setting] = config.getfloat(section, setting, fallback=0.0)
+                # Add more types if needed
+        
+        return validated_settings
 
 
     def set_up_menu(self):

@@ -17,6 +17,7 @@ import pvrhino
 from pvrecorder import PvRecorder
 
 from ableton import load_plugin
+from utilities import focus
 
 
 def main(access_key, context_path, microphone_event):
@@ -146,13 +147,14 @@ def main(access_key, context_path, microphone_event):
                 if inference.is_understood:
                     print('{')
                     print("  intent : '%s'" % inference.intent)
-                    load_plugin.load_from_library(inference.intent)
 
                     print('  slots : {')
                     for slot, value in inference.slots.items():
                         print("    %s : '%s'" % (slot, value))
                     print('  }')
                     print('}\n')
+                    if focus.isAppFocused("Live"):
+                        load_plugin.load_from_library(inference.intent)
                 else:
                     print("Didn't understand the command.\n")
     except KeyboardInterrupt:
