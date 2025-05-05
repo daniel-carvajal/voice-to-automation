@@ -13,13 +13,13 @@ CONTEXT_PATH = './Ableton_en_mac_v3_0_0.rhn'
 ACCESS_KEY = os.getenv('ACCESS_KEY')  
 
 
-class PomodoroApp(object):
+class VoiceToAutomationApp(object):
     def __init__(self):
         self.settings = self.load_settings()  # Load settings first
         print("here! ", self.settings)
 
         self.config = {
-            "app_name": "Pomodoro",
+            "app_name": "Voice-To-Automation",
             "start": "Start Timer",
             "pause": "Pause Timer",
             "continue": "Continue Timer",
@@ -45,7 +45,7 @@ class PomodoroApp(object):
 
     def get_data_path(self, filename):
         home_dir = Path.home()
-        settings_dir = home_dir / '.pomodoro_app'
+        settings_dir = home_dir / '.vta'
         settings_dir.mkdir(exist_ok=True)
         return settings_dir / filename
 
@@ -147,5 +147,5 @@ class PomodoroApp(object):
 
 
 if __name__ == '__main__':
-    app = PomodoroApp()
+    app = VoiceToAutomationApp()
     app.run()
